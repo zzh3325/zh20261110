@@ -1,0 +1,25 @@
+<template>
+  <view class="page">
+    <view class="inspection-head card"><view class="row between"><view><view class="muted">安全巡检记录</view><view class="big">{{ items.length }} 条</view></view><button class="btn-primary" @click="createInspection">新增巡检</button></view></view>
+    <view class="tabs"><view v-for="tab in tabs" :key="tab.key" :class="{active:activeTab===tab.key}" @click="activeTab=tab.key">{{ tab.label }}<text>{{ countFor(tab.key) }}</text></view></view>
+    <StatePanel :state="state" :message="errorMessage" @retry="load" />
+    <input v-model="keyword" class="card" placeholder="搜索项目、人员、位置或结果（本地筛选）" />
+    <view v-if="state==='success'" class="task-list">
+      <view v-for="task in searched" :key="task.id" class="task card" @click="openDetail(task)">
+        <view class="date-box"><view>{{ dayOf(task.plannedTime||task.time) }}</view><text>{{ monthOf(task.plannedTime||task.time) }}</text></view>
+        <view class="grow"><view class="row between"><view class="task-title">{{ task.title || task.name || '巡检任务' }}</view><view class="task-status" :class="statusClass(task)">{{ statusText(task) }}</view></view><view class="muted task-meta">⌖ {{ task.location || '位置待完善' }}</view><view class="muted task-meta">◷ {{ task.plannedTime || task.time || '--' }}</view><view class="row between task-bottom"><text>{{ task.assigneeName || '待分配' }}</text><text class="detail-link">查看详情 ›</text></view></view>
+      </view>
+      <StatePanel v-if="!searched.length" state="empty" message="没有匹配的巡检记录" />
+    </view>
+  </view>
+</template>
+<script setup lang="ts">
+function createInspection(){uni.navigateTo({url:'/pages/inspection/execute'})}
+import { computed,ref } from 'vue';import { onShow } from '@dcloudio/uni-app';import StatePanel from '@/components/StatePanel.vue';import { useAuthStore } from '@/stores/auth';import { getInspections } from '@/api/inspection';import { demoInspections } from '@/data/demo';import { listOf } from '@/utils/normalize';import type { Inspection,LoadState } from '@/types/domain'
+const auth=useAuthStore(),state=ref<LoadState>('loading'),errorMessage=ref(''),items=ref<Inspection[]>([]),activeTab=ref('all');const tabs=[{key:'pending',label:'未填写结果'},{key:'completed',label:'已填报'},{key:'all',label:'全部'}]
+function done(i:Inspection){return Boolean(i.result)||['COMPLETED','DONE','1','已完成','正常','异常'].includes(String(i.status??i.condition))}const completed=computed(()=>items.value.filter(done).length),completionRate=computed(()=>items.value.length?Math.round(completed.value/items.value.length*100):0),filtered=computed(()=>activeTab.value==='all'?items.value:activeTab.value==='completed'?items.value.filter(done):items.value.filter(i=>!done(i)))
+async function load(){state.value='loading';try{items.value=auth.demoMode?demoInspections:listOf<Inspection>(await getInspections());state.value=items.value.length?'success':'empty'}catch(e){errorMessage.value=e instanceof Error?e.message:'巡检任务加载失败';state.value='error'}}
+const keyword=ref(''),searched=computed(()=>filtered.value.filter(i=>[i.title,i.assigneeName,i.location,i.result,i.description].some(v=>String(v||'').includes(keyword.value.trim()))))
+function countFor(k:string){return k==='all'?items.value.length:k==='completed'?completed.value:items.value.length-completed.value}function statusText(i:Inspection){return done(i)?'已填报':'未填报'}function statusClass(i:Inspection){return done(i)?'done':'pending'}function dayOf(v?:string){return v?String(v).slice(8,10):'--'}function monthOf(v?:string){return v?`${String(v).slice(5,7)}月`:'计划'}function openDetail(i:Inspection){uni.navigateTo({url:`/pages/inspection/detail?id=${encodeURIComponent(String(i.id))}`})}onShow(load)
+</script>
+<style scoped>.inspection-head{background:linear-gradient(135deg,#e7f6f2,#fff)}.big{font-size:62rpx;font-weight:900;color:#087f72;margin-top:7rpx}.progress-ring{width:118rpx;height:118rpx;border-radius:50%;border:10rpx solid #bfe8df;display:grid;place-content:center;text-align:center;font-size:32rpx;font-weight:800;color:#087f72}.progress-ring text{font-size:18rpx}.progress{height:10rpx;margin-top:24rpx;background:#deebe9;border-radius:20rpx;overflow:hidden}.progress view{height:100%;background:#0a9684}.tabs{display:flex;margin:28rpx 0 22rpx;background:#e8efee;padding:8rpx;border-radius:18rpx}.tabs view{flex:1;text-align:center;padding:17rpx;border-radius:13rpx;font-size:24rpx;color:#71807e}.tabs view text{font-size:18rpx;margin-left:6rpx}.tabs .active{color:#087f72;background:#fff;font-weight:700}.task-list{display:flex;flex-direction:column;gap:18rpx}.task{display:flex;gap:22rpx}.date-box{flex:none;width:82rpx;height:98rpx;border-radius:18rpx;text-align:center;background:#e8f6f3;color:#087f72;padding-top:13rpx}.date-box view{font-size:34rpx;font-weight:800}.date-box text{font-size:19rpx}.task-title{font-size:29rpx;font-weight:800;max-width:310rpx}.task-status{font-size:20rpx}.task-status.pending{color:#c8751d}.task-status.done{color:#087f72}.task-meta{font-size:21rpx;margin-top:10rpx}.task-bottom{border-top:1rpx solid #edf2f1;margin-top:18rpx;padding-top:16rpx;font-size:21rpx}.detail-link{color:#087f72}</style>

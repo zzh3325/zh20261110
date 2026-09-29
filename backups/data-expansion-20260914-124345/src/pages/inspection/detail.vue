@@ -1,0 +1,16 @@
+<template>
+  <view class="page">
+    <StatePanel :state="state" @retry="load" />
+    <template v-if="state==='success'">
+      <view class="task-hero card"><view class="pill">{{ done?'已完成':'待巡检' }}</view><view class="title">{{ task.title||task.name }}</view><view class="muted">{{ task.description||'按计划完成现场安全巡检并如实记录。' }}</view></view>
+      <view class="timeline card"><view class="line"/><view class="step"><text>1</text><view><view class="strong">到达巡检区域</view><view class="muted">开启位置服务并完成现场打卡</view></view></view><view class="step"><text>2</text><view><view class="strong">现场检查与拍照</view><view class="muted">检查设施状态，异常情况需要照片</view></view></view><view class="step"><text>3</text><view><view class="strong">提交巡检结果</view><view class="muted">确认记录无误后提交至管理平台</view></view></view></view>
+      <view class="section-title">任务信息</view><view class="card details"><view class="detail row between"><text class="muted">计划时间</text><text>{{ task.plannedTime||task.time||'--' }}</text></view><view class="detail row between"><text class="muted">巡检位置</text><text>{{ task.location||'--' }}</text></view><view class="detail row between"><text class="muted">执行人员</text><text>{{ task.assigneeName||'--' }}</text></view></view>
+      <button v-if="!done" class="btn-primary start" @click="start">开始巡检</button><view v-else class="card result"><view class="strong">巡检结果</view><view class="muted result-text">{{ task.result||task.remark||'巡检任务已完成' }}</view></view>
+    </template>
+  </view>
+</template>
+<script setup lang="ts">
+import { computed,reactive,ref } from 'vue';import { onLoad } from '@dcloudio/uni-app';import StatePanel from '@/components/StatePanel.vue';import { useAuthStore } from '@/stores/auth';import { getInspection } from '@/api/inspection';import { demoInspections } from '@/data/demo';import type { Inspection,LoadState } from '@/types/domain'
+const auth=useAuthStore(),state=ref<LoadState>('loading'),id=ref(''),task=reactive<Inspection>({id:'',title:''}),done=computed(()=>Boolean(task.result)||['COMPLETED','DONE','1','已完成','正常','异常'].includes(String(task.status??task.condition)));async function load(){state.value='loading';try{Object.assign(task,auth.demoMode?demoInspections.find(i=>String(i.id)===id.value)||demoInspections[0]:await getInspection(id.value));state.value='success'}catch{state.value='error'}}function start(){uni.navigateTo({url:`/pages/inspection/execute?id=${encodeURIComponent(id.value)}`})}onLoad(o=>{id.value=String(o?.id||'');load()})
+</script>
+<style scoped>.task-hero .title{font-size:38rpx;font-weight:900;margin:18rpx 0 10rpx}.timeline{position:relative;margin-top:22rpx}.line{position:absolute;left:46rpx;top:58rpx;bottom:58rpx;width:2rpx;background:#cce5e0}.step{position:relative;display:flex;gap:22rpx;margin:18rpx 0 34rpx}.step:last-child{margin-bottom:10rpx}.step>text{z-index:1;flex:none;width:42rpx;height:42rpx;line-height:42rpx;text-align:center;border-radius:50%;background:#087f72;color:#fff;font-size:20rpx}.step .muted{font-size:22rpx;margin-top:8rpx}.details{padding-top:8rpx;padding-bottom:8rpx}.detail{padding:22rpx 0;border-bottom:1rpx solid #edf2f1;font-size:24rpx}.detail:last-child{border:0}.start{margin-top:28rpx}.result{margin-top:25rpx}.result-text{margin-top:12rpx;line-height:1.7}</style>

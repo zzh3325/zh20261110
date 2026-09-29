@@ -1,0 +1,25 @@
+{
+  "name": "大桥水库安全标准化信息平台",
+  "appid": "__UNI__B920C01",
+  "description": "大桥水库安全监测与巡检 WebApp",
+  "versionName": "2.0.0",
+  "versionCode": "200",
+  "transformPx": false,
+  "vueVersion": "3",
+  "h5": {
+    "router": { "mode": "hash" },
+    "devServer": { "port": 8084 },
+    "title": "大桥水库安全标准化信息平台"
+  },
+  "mp-weixin": {
+    "appid": "wx8ae95ae1edd1998c",
+    "setting": { "urlCheck": false, "es6": true, "postcss": true, "minified": true },
+    "usingComponents": true,
+    "lazyCodeLoading": "requiredComponents",
+    "permission": {
+      "scope.userLocation": { "desc": "用于巡检位置打卡和水库导航" }
+    },
+    "requiredPrivateInfos": ["getLocation", "chooseLocation"]
+  },
+  "uniStatistics": { "enable": false }
+}
