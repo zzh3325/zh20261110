@@ -1,4 +1,4 @@
-# 大桥水库安全标准化信息平台 WebApp
+# XX水库安全标准化信息平台 WebApp
 
 基于 uni-app、Vue 3、TypeScript、Pinia 和 Vite 的移动端 WebApp，同时保留微信小程序构建能力。
 
@@ -21,7 +21,7 @@ HBuilderX 可直接打开项目目录，或使用“运行到浏览器”。
 
 ## 环境配置
 
-开发接口默认指向 `http://10.20.148.252:9191`，配置位于 `.env.development`。
+开发接口默认指向 `http://10.20.148.252:XXXX`，配置位于 `.env.development`。
 
 生产部署前必须修改 `.env.production` 中的正式 HTTPS 地址。H5 的现场位置打卡依赖浏览器定位能力，业务站点本身也必须通过 HTTPS 访问（仅 localhost 调试可例外），普通 `http://IP:端口` 会被浏览器禁止定位。
 
