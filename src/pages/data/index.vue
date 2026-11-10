@@ -1,6 +1,6 @@
 <template>
   <view class="page browser">
-    <view class="card intro"><view class="section-title">{{ source?.title || '数据查询' }}</view><view class="muted">独立数据源 · 只读查询</view><view class="notice">数值单位以原接口为准；未返回单位时不进行换算。时间保留接口时区标识。</view></view>
+    <view class="card intro"><view class="section-title">{{ source?.title || '数据查询' }}</view><view class="muted">记录查询</view></view>
     <view v-if="source" class="card filters">
       <view v-for="filter in source.filters" :key="filter.key" class="filter">
         <view class="label">{{ filter.label }}{{ filter.required ? ' *' : '' }}</view>
@@ -18,7 +18,7 @@
         <view class="row between" @click="expanded=expanded===index?-1:index"><view class="strong">{{ row.deviceName||row.name||row.pointName||row.fileName||row.title||row.monitoringPoint||row.streamName||'记录 '+String(row.id??row.ukid??index+1) }}</view><text>{{ expanded===index?'收起':'详情 ›' }}</text></view>
         <view v-for="field in fields(row,index)" :key="field.key" class="field"><text class="muted">{{ field.label }}</text><text class="value" selectable>{{ field.value }}</text></view>
         <view class="actions">
-          <button v-if="source?.key==='totalPoints' && row.pointId!=null" size="mini" @click="openDataSource('totalData',{pointId:row.pointId,projectId:row.projectId})">测点历史</button>
+          <button v-if="source?.key==='totalPoints' && row.pointId!=null" size="mini" @click="openDataSource('totalData',{pointId:row.pointId,projectId:row.projectId,dataType:'measresult'})">测点历史</button>
           <button v-if="source?.key==='gnss' && row.stationId!=null" size="mini" @click="openDataSource('displacement',{stationId:row.stationId,projectId:row.projectId})">站点位移</button>
           <button v-if="source?.key==='termite' && row.id!=null" size="mini" @click="openDataSource('termiteLogs',{id:row.id})">设备日志</button>
           <button v-if="source?.key==='cameras' && row.id!=null" size="mini" @click="openCamera(row)">视频通道</button>
@@ -32,7 +32,7 @@
     </template>
     <view v-if="source?.paged && (state==='success'||state==='empty')" class="buttons pager"><button :disabled="busy||page===0" @click="changePage(-1)">上一页</button><text>{{ page+1 }}</text><button :disabled="busy||!hasNext" @click="changePage(1)">下一页</button></view>
     <view v-if="playingUrl" class="overlay"><view class="player"><button @click="playingUrl=''">关闭播放</button><LivePlayer :url="playingUrl" /></view></view>
-    <view v-if="archive" class="overlay"><scroll-view scroll-y class="archive card"><button @click="archive=null">关闭详情</button><view v-for="field in displayFields(archive)" :key="field.key" class="field"><text class="muted">{{ field.label }}</text><text class="value" selectable>{{ field.value }}</text></view><button @click="copyArchive">复制文件访问地址</button><view class="notice">文件访问权限、下载鉴权及跨域策略由后端决定。</view></scroll-view></view>
+    <view v-if="archive" class="overlay"><scroll-view scroll-y class="archive card"><button @click="archive=null">关闭详情</button><view v-for="field in displayFields(archive)" :key="field.key" class="field"><text class="muted">{{ field.label }}</text><text class="value" selectable>{{ field.value }}</text></view><button @click="copyArchive">复制文件访问地址</button></scroll-view></view>
   </view>
 </template>
 <script setup lang="ts">

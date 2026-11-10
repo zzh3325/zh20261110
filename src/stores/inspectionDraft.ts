@@ -5,6 +5,11 @@ const STORAGE_KEY = 'daqiao-inspection-drafts'
 
 export interface InspectionDraft {
   taskId: string
+  inspectionItem?: string
+  checkPosition?: string
+  inspectionType?: string
+  inspectionTime?: string
+  inspectionTimeUserEdited?: boolean
   checkedAt?: string
   longitude?: number
   latitude?: number
@@ -14,7 +19,11 @@ export interface InspectionDraft {
 }
 
 export const useInspectionDraftStore = defineStore('inspectionDraft', () => {
-  const drafts = ref<Record<string, InspectionDraft>>(uni.getStorageSync(STORAGE_KEY) || {})
+  const stored = (uni.getStorageSync(STORAGE_KEY) || {}) as Record<string, InspectionDraft>
+  for (const draft of Object.values(stored)) {
+    draft.photos = Array.isArray(draft.photos) ? draft.photos.filter(path => !path.startsWith('blob:')) : []
+  }
+  const drafts = ref<Record<string, InspectionDraft>>(stored)
 
   function get(taskId: string): InspectionDraft {
     return drafts.value[taskId] || { taskId, result: '', remark: '', photos: [] }
@@ -22,7 +31,11 @@ export const useInspectionDraftStore = defineStore('inspectionDraft', () => {
 
   function save(draft: InspectionDraft) {
     drafts.value[draft.taskId] = { ...draft }
-    uni.setStorageSync(STORAGE_KEY, drafts.value)
+    const persistentDrafts = Object.fromEntries(Object.entries(drafts.value).map(([key, value]) => [
+      key,
+      { ...value, photos: value.photos.filter(path => !path.startsWith('blob:')) }
+    ]))
+    uni.setStorageSync(STORAGE_KEY, persistentDrafts)
   }
 
   function remove(taskId: string) {

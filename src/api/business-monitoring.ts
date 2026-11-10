@@ -1,5 +1,6 @@
 import { http } from '@/utils/request'
 import { parseApiJson } from '@/utils/json'
+import { displacementMm, numeric } from '@/utils/monitoring-values'
 import { unpackRows,type DataRow } from '@/api/data-browser'
 import type { MonitorCategory } from './monitor-categories'
 export type Row=DataRow
@@ -107,31 +108,58 @@ export async function loadBusinessChart(category:MonitorCategory,device:Row,poin
 export interface Metric {key:string;label:string;unit:string}
 export function metricsFor(c:MonitorCategory):Metric[]{
  const m=(key:string,label:string,unit=''):Metric=>({key,label,unit})
- if(c.kind==='total')return [m('dx','dX','m'),m('dy','dY','m'),m('dz','dZ','m')]
- // 位移接口差值单位未在 Swagger 标明：不照搬 Web 的 mm 标注。
- if(c.kind==='gnss')return [m('dx','X 位移'),m('dy','Y 位移'),m('dz','Z 位移'),m('displacement','三维合位移')]
- if(c.kind==='rec')return [m('value',c.key==='temperature'?'水温':c.key==='settlement'?'水位高度':c.key==='joint'?'接缝位移':'水平位移',c.key==='temperature'?'℃':'mm')]
- if(c.key==='pressure')return [m('水位高程','水位高程'),m('水位','水位'),m('水压','水压')]
+ if(c.kind==='total')return [m('dx','dX','mm'),m('dy','dY','mm'),m('dz','dZ','mm')]
+ if(c.kind==='gnss')return [m('dx','X 位移','mm'),m('dy','Y 位移','mm'),m('dz','Z 位移','mm')]
+ if(c.kind==='rec')return [m('value',c.key==='temperature'?'水温':c.key==='settlement'?'水位高度':c.key==='joint'?'电位器拉开的位移量':'水平位移量',c.key==='temperature'?'℃':'mm')]
+ if(c.key==='pressure')return [m('水位高程','水位高程','m'),m('水位','水位','m'),m('水压','水压','kPa')]
  if(c.key==='flow')return [m('流量','流量','m³/s')]
- if(c.kind==='meteo')return [m('温度','温度','℃'),m('湿度','湿度','%'),m('气压','气压'),m('风速数据','风速'),m('风向数据','风向'),m('降雨量','降雨量','mm')]
- if(c.sttp==='RR')return [m('RZ','库水位','m'),m('W','蓄水量'),m('INQ','入库流量','m³/s'),m('OTQ','出库流量','m³/s'),m('CKFLZ','校核水位','m'),m('FSLTDZ','汛限水位','m')]
+ if(c.kind==='meteo')return [m('温度','温度','℃'),m('湿度','湿度','%'),m('气压','气压','hPa'),m('风速数据','风速','m/s'),m('风向数据','风向','°'),m('降雨量','降雨量','mm')]
+ if(c.sttp==='RR')return [m('RZ','库水位','m'),m('W','蓄水量','m³'),m('INQ','入库流量','m³/s'),m('OTQ','出库流量','m³/s'),m('CKFLZ','校核水位','m'),m('FSLTDZ','汛限水位','m')]
  if(c.sttp==='PP')return [m('drp','时段降水量','mm'),m('dyp','日降水量','mm'),m('intv','时段长'),m('pdr','降水历时')]
  if(c.sttp==='ZZ')return [m('upz','闸上水位','m'),m('dwz','闸下水位','m'),m('tgtq','过闸流量','m³/s')]
  return [m('alarm','虫害告警'),m('rssi','信号强度'),m('snr','信噪比'),m('voltage','电压')]
 }
-export function numeric(v:unknown):number|null{
- if(v==null||typeof v==='boolean'||typeof v==='object'||stringValue(v)==='')return null
- const n=Number(v);return Number.isFinite(n)?n:null
+export const gateHistoryFields = [
+ { key: 'swchrcd', label: '闸水特征码' },
+ { key: 'supwptn', label: '闸上水势' },
+ { key: 'sdwwptn', label: '闸下水势' },
+ { key: 'msqmt', label: '测流方法' }
+] as const
+
+export function gateHistoryValue(row: Row, key: typeof gateHistoryFields[number]['key']): string {
+ const value = row[key] ?? row[key.toUpperCase()]
+ if (typeof value !== 'string' && typeof value !== 'number') return '未提供'
+ return stringValue(value) || '未提供'
+}
+
+// 与 PC 数据层一致的取值精度。展示时另按统一格式处理。
+function sourceMetricDigits(category: MonitorCategory, key: string): number | undefined {
+ if (category.key === 'pressure' && ['水位', '水位高程', '水压'].includes(key)) return 4
+ if (category.key === 'flow' && key === '流量') return 8
+ if (category.kind === 'meteo' && key === '气压') return 4
 }
 export function metricValue(c:MonitorCategory,row:Row,key:string):number|null{
  if(c.kind==='rec'&&key==='value'){
-  const raw=numeric(row.data1);return raw===null?null:c.key==='temperature'?Number(((raw-46.6)*5).toFixed(3)):raw
+  const raw=numeric(row.data1??row.value);return raw===null?null:c.key==='temperature'?Number(((raw-46.6)*5).toFixed(3)):raw
+ }
+ if ((c.kind === 'total' || c.kind === 'gnss') && ['dx', 'dy', 'dz'].includes(key)) {
+  const axis = key.slice(1)
+  const suffix = axis.toUpperCase()
+  const raw = c.kind === 'gnss'
+   ? row[axis] ?? row[key] ?? row['delta' + suffix] ?? row['disp' + suffix]
+   : row[key] ?? row[key.toUpperCase()]
+  return displacementMm(raw)
  }
  const values=c.kind==='sensor'?objectValue(row.resultData):c.kind==='meteo'?objectValue(row.resultValue):row
  if(key==='alarm'&&typeof values[key]==='boolean')return values[key]?1:0
- return numeric(values[key]??values[key.toLowerCase()]??values[key.toUpperCase()])
+ const raw = numeric(values[key] ?? values[key.toLowerCase()] ?? values[key.toUpperCase()])
+ if (raw === null) return null
+ const digits = sourceMetricDigits(c, key)
+ const value = digits === undefined ? raw : Number(raw.toFixed(digits))
+ // PC 先将渗压水位原值舍入到 4 位，再从 mm 转成 m。
+ return c.key === 'pressure' && key === '水位' ? Number((value / 1000).toFixed(4)) : value
 }
-export function recordTime(row:Row){return stringValue(row.measureTime||row.collectTime||row.time||row.FULLTM||row.fulltm||row.tm||row.jcrq||row.createTime)}
+export function recordTime(row:Row){return stringValue(row.measureTime||row.collectTime||row.time||row.FULLTM||row.fulltm||row.tm||row.TM||row.jcrq||row.createTime||row.dataTime)}
 export function statusLabel(row:Row){
  if(row.offline!==undefined&&row.offline!==null)return ({'0':'在线','1':'离线','2':'失联'} as Record<string,string>)[stringValue(row.offline)]||'状态未提供'
  return ({RUNNING:'运行中',OFFLINE:'离线',MAINTENANCE:'维护中',ONLINE:'在线'} as Record<string,string>)[stringValue(row.deviceStatus)]||'状态未提供'

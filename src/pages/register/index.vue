@@ -5,7 +5,7 @@
 
     <view class="heading">
       <view class="heading-title">创建账号</view>
-      <view class="heading-subtitle">注册信息提交前，密码会使用后端 RSA 公钥加密</view>
+      <view class="heading-subtitle">请填写账号信息</view>
     </view>
 
     <view class="register-card">

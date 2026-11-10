@@ -5,7 +5,7 @@
       <view class="current card"><view class="row between"><view><view class="muted">当前监测值</view><view><text class="value">{{ point.latestValue ?? latestValue }}</text><text class="unit">{{ point.unit || measurements[0]?.unit }}</text></view></view><view class="pill">监测记录</view></view><view class="muted update">更新时间：{{ point.lastTime || '--' }}</view></view>
       <view v-if="metricNames.length" class="section"><picker :range="metricNames" @change="selectMetric"><view class="picker-field"><text class="picker-value">观测指标：{{ metric||'请选择' }}</text><text class="picker-arrow">⌄</text></view></picker></view>
       <view class="section"><TrendChart :title="metric||'监测趋势'" :points="selectedMeasurements" :unit="point.unit" /></view>
-      <view class="card"><view class="muted">当前展示返回的 30 条以内记录；非全部历史。未返回单位时不换算。</view><view v-for="(record,index) in selectedMeasurements" :key="index" class="detail-row row between"><text>{{ record.time }}</text><text>{{ record.value??'--' }}</text></view></view>
+      <view class="card"><view class="muted">展示最近 30 条以内的监测记录。</view><view v-for="(record,index) in selectedMeasurements" :key="index" class="detail-row row between"><text>{{ record.time }}</text><text>{{ record.value??'--' }}</text></view></view>
       <view class="card"><view class="detail-row row between"><text class="muted">测点名称</text><text>{{ point.name }}</text></view><view class="detail-row row between"><text class="muted">测点编码</text><text>{{ point.code || '--' }}</text></view><view class="detail-row row between"><text class="muted">监测类型</text><text>{{ point.type || '--' }}</text></view><view class="detail-row row between"><text class="muted">安装位置</text><text>{{ point.location || '--' }}</text></view></view>
     </template>
   </view>

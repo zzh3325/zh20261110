@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import * as authApi from '@/api/auth'
 import { RequestError } from '@/utils/request'
+import { clearInspectionCheckIn } from '@/utils/inspection-check-in'
 import type { UserInfo } from '@/types/domain'
 
 const USER_KEY = 'daqiao-current-user'
@@ -35,6 +36,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   function signOut() {
+    clearInspectionCheckIn()
     user.value = null
     uni.removeStorageSync(USER_KEY)
     uni.removeStorageSync('auth-token')

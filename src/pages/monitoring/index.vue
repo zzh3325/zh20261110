@@ -4,9 +4,9 @@
   <view class="entry card row between" @click="openDataSource('devices')"><view><view class="strong">设备管理</view><view class="muted">设备台账、运行状态与责任信息</view></view><text>›</text></view>
   <view v-for="group in groups" :key="group.title" class="card category">
    <view class="title">{{ group.title }}</view>
-   <view v-for="item in group.items" :key="item.key" class="row between item" @click="open(item)"><view>{{ group.items.length===1?'查看设备与监测数据':item.title }}<view v-if="item.kind==='unsupported'" class="muted note">正确数据接口待确认</view></view><text>›</text></view>
+   <view v-for="item in group.items" :key="item.key" class="row between item" @click="open(item)"><view>{{ group.items.length===1?'查看设备与监测数据':item.title }}<view v-if="item.kind==='unsupported'" class="muted note">暂未开放</view></view><text>›</text></view>
   </view>
-  <view class="muted foot">无数据、未知状态与接口异常分开显示，不使用占位值填补。</view>
+  <!-- <view class="muted foot">无数据、未知状态与接口异常分开显示，不使用占位值填补。</view> -->
  </view>
 </template>
 <script setup lang="ts">

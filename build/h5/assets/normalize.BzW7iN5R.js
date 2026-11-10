@@ -1,0 +1,1 @@
+function r(t){if(Array.isArray(t))return t;if(!t||"object"!=typeof t)return[];const n=t;return Array.isArray(n.records)?n.records:Array.isArray(n.list)?n.list:Array.isArray(n.content)?n.content:n.data!==t?r(n.data):[]}function t(r){if(!r)return"--";const t=String(r).replace("T"," ");return t.length>19?t.slice(0,19):t}export{t as f,r as l};

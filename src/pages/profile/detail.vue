@@ -1,4 +1,4 @@
-<template><view class="page"><StatePanel :state="state" :message="error" @retry="load" /><view v-if="state==='success'" class="card"><view v-for="field in fields" :key="field.key" class="line"><text class="muted">{{ field.label }}</text><text selectable>{{ field.value }}</text></view><view class="notice">资料来自 /userInfo。若后端仅返回角色，姓名、部门和联系方式将显示“未提供”。当前账号名称来自登录会话；角色名称不等同于具体操作权限。</view><button @click="load">刷新账号资料</button></view></view></template>
+<template><view class="page"><StatePanel :state="state" :message="error" @retry="load" /><view v-if="state==='success'" class="card"><view v-for="field in fields" :key="field.key" class="line"><text class="muted">{{ field.label }}</text><text selectable>{{ field.value }}</text></view><button @click="load">刷新账号资料</button></view></view></template>
 <script setup lang="ts">
 import { computed,ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'

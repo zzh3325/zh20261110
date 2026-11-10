@@ -69,7 +69,26 @@ export interface UserInfo {
 }
 
 export interface Inspection {
+  pointLatitude?: number | string
+  pointLongitude?: number | string
+  coordinateSystem?: string
+  coordinateSource?: string
+  pointId?: string
+  pointCode?: string
+  pointName?: string
+  pointArea?: string
+  checkInMethod?: string
+  checkInTime?: string
   id: string | number
+  inspectionItem?: string
+  checkPosition?: string
+  coordinate?: string
+  inspectionType?: string
+  inspectionTime?: string
+  issueDescription?: string
+  photoPaths?: string[]
+  createdAt?: string
+  updatedAt?: string
   title?: string
   name?: string
   location?: string

@@ -1,7 +1,7 @@
 <template>
  <view class="page business">
   <view class="card intro"><view class="section-title">{{ category?.title||'业务监测' }}</view><view class="muted">{{ category?.group||'工程在线监测' }}</view></view>
-  <view v-if="category?.kind==='unsupported'" class="card warning">最新 Swagger 未提供可确认的岸坡钢筋应力数据接口。本分类暂不请求数据，不使用竖直位移接口替代。</view>
+  <view v-if="category?.kind==='unsupported'" class="card warning">该监测项目暂未开放。</view>
   <template v-else-if="category">
    <StatePanel :state="deviceState" :message="deviceError" @retry="initialize" />
    <template v-if="deviceState==='success'">
@@ -17,7 +17,7 @@
       <view v-if="selectedDevice" class="muted meta">当前测站：{{ deviceLabel(selectedDevice) }} · {{ statusLabel(selectedDevice) }} · {{ selectedDevice.deviceNumber }}</view>
       <StatePanel :state="pointState" :message="pointError" @retry="reloadPoints" />
       <view v-if="pointNotice" class="warning">{{ pointNotice }}</view>
-      <button v-if="pointNotice" size="mini" @click="openPointLedger">查看该测站测点台账（不代表工程归属）</button>
+      <button v-if="pointNotice" size="mini" @click="openPointLedger">查看测站测点台账</button>
       <view v-if="pointRows.length" class="point-list">
        <view v-for="(point,index) in pointRows" :key="pointKey(point,index)" class="point-row" :class="{selected:isSelectedPoint(point)}" @click="togglePoint(point,index)">
         <view class="row between point-head"><view class="strong">{{ point.name||point.pointName||'测点 '+point.pointId }}</view><view class="point-owner" :class="{matched:isMatchedPoint(point)}">{{ pointOwner(point) }}</view></view>
@@ -51,8 +51,8 @@
      <button class="btn-primary query" :disabled="busy||pointBusy||category.kind==='total'&&!points.length" @click="search">查询监测数据</button>
     </view>
     <view v-if="mappingNotice" class="card warning">{{ mappingNotice }}</view>
-    <view v-if="category.key==='temperature'" class="card muted tip">按 Web 端水温规则计算：(data1 − 46.6) × 5。保留原始值，不对其他采集通道应用此公式。</view>
-    <view v-if="category.key==='pressure'" class="card muted tip">保留接口原始水位、水位高程和水压；当前单位尚未确认，不擅自执行 mm→m 换算。</view>
+    
+    
     <view v-if="queried" class="muted tip">已应用条件：{{ appliedCaption }}。图表与列表共用此范围。</view>
     <StatePanel v-if="queried" :state="dataState" :message="dataError" @retry="retry" />
     <template v-if="queried && dataState==='success'">
@@ -66,14 +66,14 @@
       <view class="reservoir-tabs" :style="{gridTemplateColumns:`repeat(${Math.min(mobileTabs.length,3)},1fr)`}"><view v-for="tab in mobileTabs" :key="tab.key" :class="{active:mobileGroup===tab.key}" @click="mobileGroup=tab.key">{{ tab.label }}</view></view>
       <StatePanel :state="mobileChartState" :message="mobileChartError" @retry="retryMobileChart" />
       <MultiLineChart v-if="mobileChartState==='success'" :title="mobileChartTitle" :unit="mobileUnit" :series="mobileSeries" />
-      <view v-if="mobileChartState==='success'" class="muted tip">趋势图已汇总 {{ mobileChartRows.length }} 条记录{{ mobileChartTruncated?'，数据较多，仅展示前500条':'' }}；下方表格仍按接口分页展示。</view>
+      <view v-if="mobileChartState==='success'" class="muted tip">趋势图共 {{ mobileChartRows.length }} 条记录{{ mobileChartTruncated?'，仅展示前500条，请缩小日期范围查看':'' }}。</view>
      </template>
      <template v-else>
-      <view class="card chart-controls"><picker :range="metricNames" :value="metricIndex" @change="metricIndex=Number(indexOf($event))"><view class="picker-field"><text class="picker-value">观测指标：{{ selectedMetric?.label }}</text><text class="picker-arrow">⌄</text></view></picker><view class="muted tip">单位：{{ selectedMetric?.unit||'接口未明确，保留原值' }}</view></view>
+      <view class="card chart-controls"><picker :range="metricNames" :value="metricIndex" @change="metricIndex=Number(indexOf($event))"><view class="picker-field"><text class="picker-value">观测指标：{{ selectedMetric?.label }}</text><text class="picker-arrow">⌄</text></view></picker><view class="muted tip">单位：{{ selectedMetric?.unit||'未标注' }}</view></view>
       <TrendChart v-if="chartPoints.some(p=>p.value!==null)" :title="'当前页 · '+selectedMetric?.label" :unit="selectedMetric?.unit" :points="chartPoints" />
      </template>
      <view v-if="category.kind==='termite'" class="muted tip">第 {{ page+1 }} 页 · 本页 {{ records.length }} 条 · {{ total===null?'总数未返回':'共 '+total+' 条' }}。</view>
-     <view v-else class="muted tip">第 {{ page+1 }} 页 · 本页 {{ records.length }} 条 · {{ total===null?'总数未返回':'共 '+total+' 条' }}；不是完整历史曲线。</view>
+     <view v-else class="muted tip">第 {{ page+1 }} 页 · 本页 {{ records.length }} 条 · {{ total===null?'总数未返回':'共 '+total+' 条' }}。</view>
      <template v-if="category.kind==='termite'">
       <view v-for="(record,index) in termiteHistoryRecords" :key="String(record.id??index)" class="card termite-history">
        <view class="row between history-head"><view class="strong" selectable>{{ recordTime(record)||'时间未提供' }}</view><view class="alarm-tag" :class="{alarm:isTermiteAlarm(record)}">{{ isTermiteAlarm(record)?'有告警':'正常' }}</view></view>
@@ -89,11 +89,17 @@
       <view v-for="(record,index) in records" :key="String(record.id??record.ukid??index)" class="card reading">
        <view class="strong" selectable>{{ recordTime(record)||'时间未提供' }}</view>
        <view v-for="metric in metrics" :key="metric.key" class="row between value"><text class="muted">{{ metric.label }}</text><text selectable>{{ showValue(record,metric.key) }} {{ metric.unit }}</text></view>
+       <template v-if="category.sttp === 'ZZ'">
+        <view v-for="field in gateHistoryFields" :key="field.key" class="row between value">
+         <text class="muted">{{ field.label }}</text>
+         <text selectable>{{ gateHistoryValue(record, field.key) }}</text>
+        </view>
+       </template>
       </view>
      </template>
     </template>
     <view v-if="queried&&(dataState==='success'||dataState==='empty')" class="pager"><button :disabled="busy||page===0" @click="fetchPage(page-1)">上一页</button><text>{{ page+1 }}</text><button :disabled="busy||!hasNext" @click="fetchPage(page+1)">下一页</button></view>
-    <view v-if="source" class="muted source" selectable>数据来源 GET {{ source }}</view>
+    
    </template>
   </template>
  </view>
@@ -107,7 +113,8 @@ import MultiLineChart,{type LineSeries} from '@/components/MultiLineChart.vue'
 import { monitorCategories,type MonitorCategory } from '@/api/monitor-categories'
 import { openDataSource } from '@/api/data-sources'
 import { displayFields } from '@/api/data-browser'
-import { loadDevices,loadStationPoints,loadStationPointCount,splitPoints,loadReadings,loadBusinessChart,dataRequest,metricsFor,metricValue,recordTime,deviceLabel,statusLabel,stringValue,pointOwnerProject,matchesOwnerProject,PAGE_SIZE,type Row } from '@/api/business-monitoring'
+import { formatMonitorValue } from '@/utils/monitoring-values'
+import { loadDevices,loadStationPoints,loadStationPointCount,splitPoints,loadReadings,loadBusinessChart,dataRequest,metricsFor,metricValue,gateHistoryFields,gateHistoryValue,recordTime,deviceLabel,statusLabel,stringValue,pointOwnerProject,matchesOwnerProject,PAGE_SIZE,type Row } from '@/api/business-monitoring'
 import type { LoadState } from '@/types/domain'
 const category=ref<MonitorCategory>(),devices=ref<Row[]>([]),deviceIndex=ref(0),points=ref<Row[]>([]),pointRows=ref<Row[]>([]),pointIndex=ref(0),expandedPoint=ref(''),stationCounts=ref<Record<string,number|null>>({}),pointState=ref<LoadState>('success'),pointError=ref(''),pointNotice=ref(''),pointBusy=ref(false),pointPage=ref(0),pointTotal=ref<number|null>(null),pointRawCount=ref(0),lastPointCount=ref(0)
 const deviceState=ref<LoadState>('loading'),deviceError=ref(''),dataState=ref<LoadState>('success'),dataError=ref(''),busy=ref(false),queried=ref(false),records=ref<Row[]>([]),total=ref<number|null>(null),page=ref(0),metricIndex=ref(0),source=ref(''),mappingNotice=ref(''),start=ref(''),end=ref(''),year=ref(String(new Date().getFullYear()))
@@ -122,7 +129,7 @@ const TERMITE_STATUS:Record<string,{label:string;tone:string;description:string}
  '2':{label:'灭杀中',tone:'handling',description:'当前点位正在执行白蚁灭杀处理。'},
  '5':{label:'已灭杀',tone:'resolved',description:'当前点位灭杀处理已完成，请持续观察。'}
 }
-const termiteStatus=computed(()=>TERMITE_STATUS[stringValue(selectedDevice.value?.status)]||{label:'状态未知',tone:'unknown',description:'接口未返回可识别的白蚁状态。'})
+const termiteStatus=computed(()=>TERMITE_STATUS[stringValue(selectedDevice.value?.status)]||{label:'状态未知',tone:'unknown',description:'暂无状态信息。'})
 const termiteHistoryRecords=computed(()=>[...records.value].sort((a,b)=>recordTime(b).localeCompare(recordTime(a))))
 const metrics=computed(()=>category.value?metricsFor(category.value):[]),metricNames=computed(()=>metrics.value.map(m=>m.label)),selectedMetric=computed(()=>metrics.value[metricIndex.value])
 const hasNext=computed(()=>total.value===null?records.value.length===PAGE_SIZE:(page.value+1)*PAGE_SIZE<total.value)
@@ -134,14 +141,14 @@ interface MobileTab {key:string;label:string;unit:string;series:MobileDefinition
 interface MobileOverview {key:string;label:string;unit:string}
 const hasMobileChart=computed(()=>['reservoir','gate','rain','gnss','weather','temperature','horizontal','settlement','joint','pressure','flow','main','aux','slope'].includes(category.value?.key||''))
 const mobileConfig=computed<{tabs:MobileTab[];overview:MobileOverview[]}>(()=>{
- if(category.value?.kind==='total')return {tabs:[{key:'displacement',label:'位移分量',unit:'m',series:[{key:'dx',label:'dX',color:'#1263d6'},{key:'dy',label:'dY',color:'#e25252'},{key:'dz',label:'dZ',color:'#477b2f'}]}],overview:[{key:'dx',label:'最新 dX',unit:'m'},{key:'dy',label:'最新 dY',unit:'m'},{key:'dz',label:'最新 dZ',unit:'m'}]}
- if(category.value?.key==='pressure')return {tabs:[{key:'elevation',label:'水位高程',unit:'接口原值',series:[{key:'水位高程',label:'水位高程',color:'#1263d6'}]},{key:'level',label:'水位',unit:'接口原值',series:[{key:'水位',label:'水位',color:'#119c92'}]},{key:'pressure',label:'水压',unit:'接口原值',series:[{key:'水压',label:'水压',color:'#7548cc'}]}],overview:[{key:'水位高程',label:'最新水位高程',unit:'接口原值'},{key:'水位',label:'最新水位',unit:'接口原值'},{key:'水压',label:'最新水压',unit:'接口原值'}]}
+ if(category.value?.kind==='total')return {tabs:[{key:'displacement',label:'位移分量',unit:'mm',series:[{key:'dx',label:'dX',color:'#1263d6'},{key:'dy',label:'dY',color:'#e25252'},{key:'dz',label:'dZ',color:'#477b2f'}]}],overview:[{key:'dx',label:'最新 dX',unit:'mm'},{key:'dy',label:'最新 dY',unit:'mm'},{key:'dz',label:'最新 dZ',unit:'mm'}]}
+ if(category.value?.key==='pressure')return {tabs:[{key:'elevation',label:'水位高程',unit:'m',series:[{key:'水位高程',label:'水位高程',color:'#1263d6'}]},{key:'level',label:'水位',unit:'m',series:[{key:'水位',label:'水位',color:'#119c92'}]},{key:'pressure',label:'水压',unit:'kPa',series:[{key:'水压',label:'水压',color:'#7548cc'}]}],overview:[{key:'水位高程',label:'最新水位高程',unit:'m'},{key:'水位',label:'最新水位',unit:'m'},{key:'水压',label:'最新水压',unit:'kPa'}]}
  if(category.value?.key==='flow')return {tabs:[{key:'flow',label:'渗流量',unit:'m³/s',series:[{key:'流量',label:'流量',color:'#119c92'}]}],overview:[{key:'流量',label:'最新渗流量',unit:'m³/s'}]}
- if(category.value?.key==='joint')return {tabs:[{key:'joint',label:'接缝位移',unit:'mm',series:[{key:'value',label:'接缝位移',color:'#7548cc'}]}],overview:[{key:'value',label:'最新接缝位移',unit:'mm'}]}
- if(category.value?.key==='horizontal')return {tabs:[{key:'horizontal',label:'水平位移',unit:'mm',series:[{key:'value',label:'水平位移',color:'#1263d6'}]}],overview:[{key:'value',label:'最新水平位移',unit:'mm'}]}
+ if(category.value?.key==='joint')return {tabs:[{key:'joint',label:'电位器拉开的位移量',unit:'mm',series:[{key:'value',label:'电位器拉开的位移量',color:'#7548cc'}]}],overview:[{key:'value',label:'最新电位器拉开的位移量',unit:'mm'}]}
+ if(category.value?.key==='horizontal')return {tabs:[{key:'horizontal',label:'水平位移量',unit:'mm',series:[{key:'value',label:'水平位移量',color:'#1263d6'}]}],overview:[{key:'value',label:'最新水平位移量',unit:'mm'}]}
  if(category.value?.key==='settlement')return {tabs:[{key:'settlement',label:'水位高度',unit:'mm',series:[{key:'value',label:'水位高度',color:'#119c92'}]}],overview:[{key:'value',label:'最新水位高度',unit:'mm'}]}
- if(category.value?.key==='gnss')return {tabs:[{key:'component',label:'位移分量',unit:'接口原值',series:[{key:'dx',label:'X 位移',color:'#1263d6'},{key:'dy',label:'Y 位移',color:'#e25252'},{key:'dz',label:'Z 位移',color:'#477b2f'}]},{key:'resultant',label:'合位移',unit:'接口原值',series:[{key:'displacement',label:'三维合位移',color:'#7548cc'}]}],overview:[{key:'dx',label:'最新 X 位移',unit:'接口原值'},{key:'dy',label:'最新 Y 位移',unit:'接口原值'},{key:'dz',label:'最新 Z 位移',unit:'接口原值'},{key:'displacement',label:'三维合位移',unit:'接口原值'}]}
- if(category.value?.key==='weather')return {tabs:[{key:'temperature',label:'温度',unit:'℃',series:[{key:'温度',label:'温度',color:'#e25252'}]},{key:'humidity',label:'湿度',unit:'%',series:[{key:'湿度',label:'湿度',color:'#1263d6'}]},{key:'pressure',label:'气压',unit:'接口原值',series:[{key:'气压',label:'气压',color:'#7548cc'}]},{key:'windSpeed',label:'风速',unit:'接口原值',series:[{key:'风速数据',label:'风速',color:'#119c92'}]},{key:'windDirection',label:'风向',unit:'接口原值',series:[{key:'风向数据',label:'风向',color:'#477b2f'}]},{key:'rainfall',label:'降雨',unit:'mm',series:[{key:'降雨量',label:'降雨量',color:'#2b82c9'}]}],overview:[{key:'温度',label:'最新温度',unit:'℃'},{key:'湿度',label:'最新湿度',unit:'%'},{key:'气压',label:'最新气压',unit:'接口原值'},{key:'风速数据',label:'最新风速',unit:'接口原值'},{key:'风向数据',label:'最新风向',unit:'接口原值'},{key:'降雨量',label:'最新降雨量',unit:'mm'}]}
+ if(category.value?.key==='gnss')return {tabs:[{key:'component',label:'位移分量',unit:'mm',series:[{key:'dx',label:'X 位移',color:'#1263d6'},{key:'dy',label:'Y 位移',color:'#e25252'},{key:'dz',label:'Z 位移',color:'#477b2f'}]}],overview:[{key:'dx',label:'最新 X 位移',unit:'mm'},{key:'dy',label:'最新 Y 位移',unit:'mm'},{key:'dz',label:'最新 Z 位移',unit:'mm'}]}
+ if(category.value?.key==='weather')return {tabs:[{key:'temperature',label:'温度',unit:'℃',series:[{key:'温度',label:'温度',color:'#e25252'}]},{key:'humidity',label:'湿度',unit:'%',series:[{key:'湿度',label:'湿度',color:'#1263d6'}]},{key:'pressure',label:'气压',unit:'hPa',series:[{key:'气压',label:'气压',color:'#7548cc'}]},{key:'windSpeed',label:'风速',unit:'m/s',series:[{key:'风速数据',label:'风速',color:'#119c92'}]},{key:'windDirection',label:'风向',unit:'°',series:[{key:'风向数据',label:'风向',color:'#477b2f'}]},{key:'rainfall',label:'降雨',unit:'mm',series:[{key:'降雨量',label:'降雨量',color:'#2b82c9'}]}],overview:[{key:'温度',label:'最新温度',unit:'℃'},{key:'湿度',label:'最新湿度',unit:'%'},{key:'气压',label:'最新气压',unit:'hPa'},{key:'风速数据',label:'最新风速',unit:'m/s'},{key:'风向数据',label:'最新风向',unit:'°'},{key:'降雨量',label:'最新降雨量',unit:'mm'}]}
  if(category.value?.key==='temperature')return {tabs:[{key:'temperature',label:'水温',unit:'℃',series:[{key:'value',label:'计算水温',color:'#1263d6'}]},{key:'raw',label:'原始值',unit:'接口原值',series:[{key:'data1',label:'原始 data1',color:'#7548cc'}]}],overview:[{key:'value',label:'最新水温',unit:'℃'},{key:'data1',label:'最新原始值',unit:'接口原值'}]}
  if(category.value?.key==='gate')return {tabs:[{key:'level',label:'水位',unit:'m',series:[{key:'upz',label:'闸上水位',color:'#1263d6'},{key:'dwz',label:'闸下水位',color:'#119c92'}]},{key:'flow',label:'流量',unit:'m³/s',series:[{key:'tgtq',label:'过闸流量',color:'#e28a11'}]}],overview:[{key:'upz',label:'最新闸上水位',unit:'m'},{key:'dwz',label:'最新闸下水位',unit:'m'},{key:'tgtq',label:'最新过闸流量',unit:'m³/s'}]}
  if(category.value?.key==='rain')return {tabs:[{key:'rain',label:'降雨量',unit:'mm',series:[{key:'drp',label:'时段降水量',color:'#1263d6'},{key:'dyp',label:'日降水量',color:'#7548cc'}]},{key:'period',label:'时段',unit:'接口原值',series:[{key:'intv',label:'时段长',color:'#119c92'},{key:'pdr',label:'降水历时',color:'#e28a11'}]}],overview:[{key:'drp',label:'最新时段降水量',unit:'mm'},{key:'dyp',label:'最新日降水量',unit:'mm'},{key:'intv',label:'时段长',unit:'接口原值'},{key:'pdr',label:'降水历时',unit:'接口原值'}]}
@@ -173,7 +180,11 @@ function pointDetails(point:Row){return displayFields(point,'totalPoints').filte
 function togglePoint(point:Row,index:number){const key=pointKey(point,index);expandedPoint.value=expandedPoint.value===key?'':key;if(isMatchedPoint(point)){const matchedIndex=points.value.findIndex(item=>pointKey(item)===key);if(matchedIndex>=0){pointIndex.value=matchedIndex;clearData()}}}
 function openPointLedger(){if(selectedDevice.value)openDataSource('totalPoints',{projectId:selectedDevice.value.stationId})}
 function sampleRows(rows:Row[],limit:number){if(rows.length<=limit)return rows;const result:Row[]=[];for(let index=0;index<limit;index++)result.push(rows[Math.round(index*(rows.length-1)/(limit-1))]);return result}
-function showOverview(row:Row|undefined,key:string){if(!row)return '--';const value=metricValue(category.value!,row,key);if(value===null)return '--';return Math.abs(value)>=1000?value.toFixed(0):Math.abs(value)>=100?value.toFixed(1):value.toFixed(2)}
+function showOverview(row: Row | undefined, key: string) {
+ if (!row) return '--'
+ const current = category.value!
+ return formatMonitorValue(metricValue(current, row, key))
+}
 function clearData(){epoch++;mobileEpoch++;busy.value=false;queried.value=false;records.value=[];page.value=0;total.value=null;source.value='';mappingNotice.value='';dataError.value='';mobileChartRows.value=[];mobileChartState.value='success';mobileChartError.value='';mobileChartTruncated.value=false}
 async function initialize(){
  const ticket=++initEpoch;clearData();deviceState.value='loading'
@@ -200,7 +211,7 @@ async function fetchPoints(target:number){
   const split=splitPoints(res.rows,category.value!.owner!)
   pointRows.value=[...pointRows.value,...split.matched];points.value=[...points.value,...split.matched];unassigned+=split.unassigned.length
   pointPage.value=target;pointRawCount.value+=res.rows.length;lastPointCount.value=res.rows.length;pointTotal.value=res.total
-  pointNotice.value='按 ownerProject="'+category.value!.owner+'" 匹配：该测站共 '+(res.total??points.value.length)+' 个测点，当前已加载 '+points.value.length+' 个。'+(pointsHasNext.value?'可继续加载。':'')
+  pointNotice.value='当前工程分类共 '+(res.total??points.value.length)+' 个测点，当前已加载 '+points.value.length+' 个。'+(pointsHasNext.value?'可继续加载。':'')
   pointState.value=pointRows.value.length?'success':'empty'
   if(points.value.length&&!queried.value)search()
  }catch(e){if(ticket===pointEpoch){pointError.value=errorText(e);pointState.value='error'}}
@@ -225,11 +236,18 @@ async function fetchPage(target:number){
  }catch(e){if(ticket===epoch){dataError.value=errorText(e);dataState.value='error'}}
  finally{if(ticket===epoch)busy.value=false}
 }
-function showValue(row:Row,key:string){const value=metricValue(category.value!,row,key);if(value===null)return '未提供';if(category.value?.kind==='termite'&&key==='alarm')return value===1?'有告警':'无告警';return value}
+function showValue(row: Row, key: string) {
+ const current = category.value!
+ const value = metricValue(current, row, key)
+ if (current.kind === 'termite' && key === 'alarm' && value !== null) return value === 1 ? '有告警' : '无告警'
+ return formatMonitorValue(value, '未提供')
+}
 function termitePointName(row:Row){return '监测点 '+stringValue(row.pointNumber||row.monitoringLocation||row.id||'未提供')}
 function termiteRecordPoint(row:Row){return '监测点 '+stringValue(row.pointNumber||selectedDevice.value?.pointNumber||selectedDevice.value?.monitoringLocation||'未提供')}
 function isTermiteAlarm(row:Row){return row.alarm===true||row.alarm===1||String(row.alarm).toLowerCase()==='true'}
-function historyField(row:Row,key:string){const value=row[key];return value===null||value===undefined||String(value)===''?'未提供':String(value)}
+function historyField(row: Row, key: string) {
+ return formatMonitorValue(row[key], '未提供')
+}
 onLoad(options=>{category.value=monitorCategories.find(c=>c.key===options?.category);setRange(7);if(!category.value){deviceState.value='error';deviceError.value='未知监测分类';return}mobileGroup.value=mobileConfig.value.tabs[0]?.key||'';uni.setNavigationBarTitle({title:category.value.title});if(category.value.kind!=='unsupported')initialize()})
 onUnload(()=>{epoch++;pointEpoch++;initEpoch++;mobileEpoch++})
 </script>

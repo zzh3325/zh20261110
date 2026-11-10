@@ -1,8 +1,14 @@
 <script setup lang="ts">
 import { onLaunch } from '@dcloudio/uni-app'
 import { useAuthStore } from '@/stores/auth'
+import { keepScanReturn } from '@/utils/inspection-check-in'
 
-onLaunch(() => {
+onLaunch((options) => {
+  let scanCode = options?.path === 'pages/inspection/check-in' ? String(options.query?.code || '') : ''
+  // #ifdef H5
+  if (typeof window !== 'undefined' && window.location.hash.split('?')[0] === '#/pages/inspection/check-in') scanCode = new URLSearchParams(window.location.hash.split('?')[1] || '').get('code') || ''
+  // #endif
+  if (scanCode) { try { keepScanReturn(scanCode) } catch { /* 非法扫码参数由核验页提示。 */ } }
   const auth = useAuthStore()
   auth.restore()
   if (!auth.isAuthenticated) {

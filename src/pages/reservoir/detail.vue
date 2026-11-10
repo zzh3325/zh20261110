@@ -44,7 +44,7 @@ const sections: {title: string; fields: Field[]}[] = [
     {key:'reservoirOverview',label:'水库概况'}
   ]},
   { title: '特征参数', fields: [
-    {key:'totalCapacity',label:'总库容'}, {key:'floodControlCapacity',label:'防洪库容'},
+    {key:'totalCapacity',label:'总库容',unit:'m³'}, {key:'floodControlCapacity',label:'调洪库容',unit:'m³'},
     {key:'normalStorageLevel',label:'正常蓄水位',unit:'m'},
     {key:'deadWaterLevel',label:'死水位',unit:'m'},
     {key:'mainFloodLimitLevel',label:'主汛期限制水位',unit:'m'},
@@ -52,9 +52,9 @@ const sections: {title: string; fields: Field[]}[] = [
     {key:'designFloodLevel',label:'设计洪水位',unit:'m'},
     {key:'checkFloodLevel',label:'校核洪水位',unit:'m'},
     {key:'controlledBasinArea',label:'控制流域面积'},
-    {key:'controlledChannelLength',label:'控制河道长度'},
-    {key:'averageAnnualRainfall',label:'多年平均降雨量'},
-    {key:'averageAnnualRunoff',label:'多年平均径流量'},
+    {key:'controlledChannelLength',label:'防洪库容',unit:'m³'},
+    {key:'averageAnnualRainfall',label:'兴利库容',unit:'m³'},
+    {key:'averageAnnualRunoff',label:'死库容',unit:'m³'},
     {key:'designPeakDischarge',label:'设计洪峰流量'},
     {key:'designDailyPeakFlow',label:'设计日洪峰流量'},
     {key:'checkPeakDischarge',label:'校核洪峰流量'},

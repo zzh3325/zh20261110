@@ -7,8 +7,8 @@
 3. 告警等级、状态、巡检状态和设备状态字典。
 4. 首页是否提供水库、气象、告警、巡检的聚合接口。
 5. 是否提供多测点批量最新值，避免移动端 N+1 请求。
-6. 巡检任务、路线、巡检点和巡检记录之间的数据模型。
-7. 巡检定位打卡、照片上传、附件查询与删除接口。
+6. 巡检任务、路线、巡检点和巡检记录之间的数据模型（当前 Swagger 仅明确了安全巡检记录实体）。
+7. 巡检照片删除机制（上传与查看接口已明确；更新记录时通过 `photoPaths` 保留或移除引用）。
 8. 视频直播协议、临时地址有效期、录像与问题时段回放格式。
 9. 个人资料、头像、修改密码和退出登录接口。
 10. 正式域名、HTTPS、CORS、Cookie SameSite 和文件访问策略。
@@ -18,11 +18,6 @@
 ```text
 GET    /app/dashboard
 GET    /get/monitoring/latest/batch
-POST   /admin/inspections/{id}/check-in
-POST   /admin/inspections/{id}/attachments
-GET    /get/inspections/{id}/attachments
-DELETE /admin/inspections/{id}/attachments/{attachmentId}
-POST   /admin/inspections/{id}/submit
 POST   /logout
 PUT    /user/profile
 PUT    /user/password

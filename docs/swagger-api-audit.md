@@ -18,7 +18,7 @@ Swagger：`http://10.20.148.252:9191/v3/api-docs`
 | 监测 | 测点列表/详情/数据 | `/get/sensor-points...` | 已映射测点编码、类型、状态和时间 |
 | 监测 | 全站仪/气象/GNSS/采集数据 | `/get/qimmos...`、`/get/ims...`、`/get/daqiao...` | 路径与分页参数已对齐；必填参数已在类型中标识 |
 | 预警 | 列表/详情/处理 | `/get/alert...`、`POST /admin/alerts/{id}/handle` | 已映射告警等级、状态、说明；处理接口不再发送虚构请求体 |
-| 巡检 | 列表/详情/提交 | `/get/inspections...`、`/admin/inspections/save` | 提交改为 Swagger 要求的查询参数；照片字段名为 `photos` |
+| 巡检 | 列表/详情/增删改、照片 | `/admin/inspections...` | 已统一使用新版安全巡检管理接口；先按 `SafetyInspection` JSON 保存记录并取得 ID，再调用 `/admin/inspections/{id}/photos` 逐张上传，照片查看使用 `/admin/inspections/{id}/photos/{fileName}`；支持详情、更新和删除 |
 | 视频 | 摄像头/流/直播 | `/api/cameras`、`/api/streams`、`/api/streams/{id}/live` | 已映射名称和状态；直播优先选择 HLS/fMP4/FLV 地址 |
 
 ## 首页处理

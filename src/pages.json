@@ -1,40 +1,145 @@
 {
-  "pages": [
-    { "path": "pages/home/index", "style": { "navigationStyle": "custom" } },
-    { "path": "pages/monitoring/index", "style": { "navigationBarTitleText": "综合监测" } },
-    { "path": "pages/alert/index", "style": { "navigationBarTitleText": "预警信息" } },
-    { "path": "pages/inspection/index", "style": { "navigationBarTitleText": "巡检任务" } },
-    { "path": "pages/profile/index", "style": { "navigationStyle": "custom" } },
-    { "path": "pages/login/index", "style": { "navigationStyle": "custom" } },
-    { "path": "pages/register/index", "style": { "navigationStyle": "custom" } },
-    { "path": "pages/reservoir/detail", "style": { "navigationBarTitleText": "水库信息" } },
-    { "path": "pages/monitoring/detail", "style": { "navigationBarTitleText": "测点详情" } },
-    { "path": "pages/monitoring/business", "style": { "navigationBarTitleText": "业务监测" } },
-    { "path": "pages/monitoring/video", "style": { "navigationBarTitleText": "视频监控" } },
-    { "path": "pages/device/index", "style": { "navigationBarTitleText": "设备台账" } },
-    { "path": "pages/alert/detail", "style": { "navigationBarTitleText": "预警详情" } },
-    { "path": "pages/inspection/detail", "style": { "navigationBarTitleText": "巡检详情" } },
-    { "path": "pages/inspection/execute", "style": { "navigationBarTitleText": "执行巡检" } },
-    { "path": "pages/data/index", "style": { "navigationBarTitleText": "数据查询" } },
-    { "path": "pages/profile/detail", "style": { "navigationBarTitleText": "账号资料" } }
-  ],
-  "globalStyle": {
-    "navigationBarTextStyle": "white",
-    "navigationBarTitleText": "大桥水库安全标准化信息平台",
-    "navigationBarBackgroundColor": "#087f72",
-    "backgroundColor": "#f3f7f6"
-  },
-  "tabBar": {
-    "color": "#71807e",
-    "selectedColor": "#087f72",
-    "backgroundColor": "#ffffff",
-    "borderStyle": "white",
-    "list": [
-      { "pagePath": "pages/home/index", "text": "首页" },
-      { "pagePath": "pages/monitoring/index", "text": "综合监测" },
-      { "pagePath": "pages/alert/index", "text": "预警信息" },
-      { "pagePath": "pages/inspection/index", "text": "巡检任务" },
-      { "pagePath": "pages/profile/index", "text": "个人管理" }
-    ]
-  }
+	"pages": [{
+			"path": "pages/home/index",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/monitoring/index",
+			"style": {
+				"navigationBarTitleText": "综合监测"
+			}
+		},
+		{
+			"path": "pages/alert/index",
+			"style": {
+				"navigationBarTitleText": "预警信息"
+			}
+		},
+		{
+			"path": "pages/inspection/index",
+			"style": {
+				"navigationBarTitleText": "巡检记录"
+			}
+		},
+		{
+			"path": "pages/profile/index",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/login/index",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/register/index",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/reservoir/detail",
+			"style": {
+				"navigationBarTitleText": "水库信息"
+			}
+		},
+		{
+			"path": "pages/monitoring/detail",
+			"style": {
+				"navigationBarTitleText": "测点详情"
+			}
+		},
+		{
+			"path": "pages/monitoring/business",
+			"style": {
+				"navigationBarTitleText": "业务监测"
+			}
+		},
+		{
+			"path": "pages/monitoring/video",
+			"style": {
+				"navigationBarTitleText": "视频监控"
+			}
+		},
+		{
+			"path": "pages/device/index",
+			"style": {
+				"navigationBarTitleText": "设备台账"
+			}
+		},
+		{
+			"path": "pages/alert/detail",
+			"style": {
+				"navigationBarTitleText": "预警详情"
+			}
+		},
+		{
+			"path": "pages/inspection/detail",
+			"style": {
+				"navigationBarTitleText": "巡检详情"
+			}
+		},
+		{
+			"path": "pages/inspection/check-in",
+			"style": { "navigationBarTitleText": "巡检点位核验" }
+		},
+		{
+			"path": "pages/inspection/execute",
+			"style": {
+				"navigationBarTitleText": "新增巡检记录"
+			}
+		},
+		{
+			"path": "pages/data/index",
+			"style": {
+				"navigationBarTitleText": "数据查询"
+			}
+		},
+		{
+			"path": "pages/profile/detail",
+			"style": {
+				"navigationBarTitleText": "账号资料"
+			}
+		}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "white",
+		"navigationBarTitleText": "大桥水库安全标准化信息平台",
+		"navigationBarBackgroundColor": "#087f72",
+		"backgroundColor": "#f3f7f6"
+	},
+	"tabBar": {
+		// "color": "#71807e",
+		// "selectedColor": "#087f72",
+		"color": "#263633",
+		"selectedColor": "#00695f",
+		"backgroundColor": "#ffffff",
+		"borderStyle": "white",
+		"fontSize": "22rpx",
+		"list": [{
+				"pagePath": "pages/home/index",
+				"text": "首页"
+			},
+			{
+				"pagePath": "pages/monitoring/index",
+				"text": "综合监测"
+			},
+			{
+				"pagePath": "pages/alert/index",
+				"text": "预警信息"
+			},
+			{
+				"pagePath": "pages/inspection/index",
+				"text": "巡检记录"
+			},
+			{
+				"pagePath": "pages/profile/index",
+				"text": "个人管理"
+			}
+		]
+	}
 }
